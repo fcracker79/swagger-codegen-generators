@@ -4,6 +4,7 @@
 
 import pprint
 import re  # noqa: F401
+import base64
 
 import six
 {{#imports}}{{#@first}}
@@ -178,8 +179,10 @@ class {{classname}}({{#parent}}{{parent}}{{/parent}}{{^parent}}object{{/parent}}
 {{/minItems}}
 {{/hasValidation}}
 {{/isEnum}}
-
-        self._{{name}} = {{name}}
+        if '{{datatype}}' == 'bytes' and isinstance({{name}}, str):
+            self._{{name}} = base64.b64decode({{name}})
+        else:
+            self._{{name}} = {{name}}
 
 {{/vars}}
 {{#discriminator}}
@@ -208,6 +211,8 @@ class {{classname}}({{#parent}}{{parent}}{{/parent}}{{^parent}}object{{/parent}}
                     if hasattr(item[1], "to_dict") else item,
                     value.items()
                 ))
+            elif isinstance(value, bytes):
+                result[attr] = base64.b64encode(value).decode()
             else:
                 result[attr] = value
         if issubclass({{classname}}, dict):
